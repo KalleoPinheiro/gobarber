@@ -1,8 +1,6 @@
 import { Sequelize } from 'sequelize';
-import User from '../app/models/User';
+import User from '../app/models/UserModel';
 import databaseConfig from '../config/database';
-
-require('dotenv/config');
 
 const models = [User];
 
@@ -12,7 +10,7 @@ class Database {
   }
 
   init() {
-    this.connection = new Sequelize(databaseConfig.local);
+    this.connection = new Sequelize(databaseConfig.development);
     models.map(model => model.init(this.connection));
   }
 }

@@ -1,2 +1,3 @@
-/node_modules
-changelog.config.js
+node_modules/
+.env
+.vscode/
