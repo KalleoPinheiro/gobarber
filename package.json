@@ -1,7 +1,7 @@
 {
   "name": "gobarber",
   "version": "1.0.0",
-  "description": "Training with NodeJs",
+  "description": "GoBarber - Rocketseat course",
   "main": "./src/app.js",
   "author": "Kalléo Pinheiro <kalleopinheiro@hotmail.com>",
   "license": "MIT",
