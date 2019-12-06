@@ -1,4 +1,5 @@
-import { string, ref, object } from 'yup';
+import { object, ref, string } from 'yup';
+import File from '../models/FileModel';
 import User from '../models/UserModel';
 
 class UserController {
@@ -50,26 +51,42 @@ class UserController {
 
     const user = await User.findByPk(req.userId);
 
-    if (email !== user.email) {
+    if (user && user.email !== email && email) {
       const userExists = await User.findOne({ where: { email } });
 
       if (userExists) {
         return res.status(400).json({ error: 'User already exists!' });
       }
     }
+
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
       return res.status(401).json({ error: 'Password does not match!' });
     }
 
-    const { id, name, provider } = await user.update(req.body);
-
-    return res.json({ id, name, email, provider });
+    try {
+      if (!user) {
+        res.status(400).json({ message: 'User not found' });
+      }
+      const { id, name, provider } = await user.update(req.body);
+      return res.json({ id, name, email, provider });
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
   }
 
   async list(_, res) {
     try {
-      const { id, name, email, avatar_id } = await User.findAll();
-      return res.status(200).json({ id, name, email, avatar_id });
+      const user = await User.findAll({
+        attributes: ['id', 'name', 'email'],
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+            attributes: ['id', 'name', 'url', 'path'],
+          },
+        ],
+      });
+      return res.status(200).json(user);
     } catch (error) {
       return res.status(400).json({ error });
     }
