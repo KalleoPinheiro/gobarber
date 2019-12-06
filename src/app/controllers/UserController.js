@@ -65,6 +65,15 @@ class UserController {
 
     return res.json({ id, name, email, provider });
   }
+
+  async list(_, res) {
+    try {
+      const { id, name, email, avatar_id } = await User.findAll();
+      return res.status(200).json({ id, name, email, avatar_id });
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
+  }
 }
 
 export default new UserController();
