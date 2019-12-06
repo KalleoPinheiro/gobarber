@@ -34,12 +34,12 @@ module.exports = {
     },
     feature: {
       description: 'A new feature',
-      emoji: '🚀',
+      emoji: '⭐',
       value: 'feature',
     },
     improvement: {
       description: 'A improvement for any feature',
-      emoji: '⭐',
+      emoji: '🚀',
       value: 'improvement',
     },
     bugfix: {
