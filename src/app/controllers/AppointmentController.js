@@ -1,7 +1,8 @@
+import { isBefore, parseISO, startOfHour } from 'date-fns';
 import { number, object, string } from 'yup';
-import { startOfHour, parseISO, isBefore } from 'date-fns';
 import Appointment from '../models/AppointmentsModel';
 import User from '../models/UserModel';
+import File from '../models/FileModel';
 
 class AppointmentController {
   async store(req, res) {
@@ -55,14 +56,34 @@ class AppointmentController {
     }
   }
 
-  // async list(req, res) {
-  //   try {
-  //     const appointments = await Appointment.findAll();
-  //     res.status(200).json(appointments);
-  //   } catch (error) {
-  //     res.status(200).json();
-  //   }
-  // }
+  async list(req, res) {
+    const { page = 1 } = req.query;
+    try {
+      const appointments = await Appointment.findAll({
+        where: { user_id: req.userId, canceled_at: null },
+        attributes: ['id', 'date'],
+        limit: 20,
+        offset: (page - 1) * 20,
+        include: [
+          {
+            model: User,
+            as: 'provider',
+            attributes: ['name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['path', 'url'],
+              },
+            ],
+          },
+        ],
+      });
+      return res.status(200).json(appointments);
+    } catch (error) {
+      return res.status(200).json({ error });
+    }
+  }
 }
 
 export default new AppointmentController();

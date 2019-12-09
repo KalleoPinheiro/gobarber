@@ -7,6 +7,7 @@ import SesstionController from './app/controllers/SessionController';
 import UserController from './app/controllers/UserController';
 import authMiddlaware from './app/middlewares/AuthMiddleware';
 import multerConfig from './config/multer';
+import ScheduleController from './app/controllers/ScheduleController';
 
 const routes = new Router();
 const upload = multer(multerConfig);
@@ -21,7 +22,8 @@ routes.use(authMiddlaware);
 // GET
 routes.get('/users', UserController.list);
 routes.get('/providers', ProviderController.list);
-// routes.get('/appointments', AppointmentController.list);
+routes.get('/appointments', AppointmentController.list);
+routes.get('/schedule', ScheduleController.list);
 
 // POST
 routes.post('/files', upload.single('file'), FileController.store);
