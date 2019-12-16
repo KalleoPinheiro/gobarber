@@ -1,10 +1,11 @@
-import { isBefore, parseISO, startOfHour, format } from 'date-fns';
+import { isBefore, parseISO, startOfHour, format, subHours } from 'date-fns';
 import pt from 'date-fns/locale/pt-BR';
 import { number, object, string } from 'yup';
 import Appointment from '../models/AppointmentsModel';
 import User from '../models/UserModel';
 import File from '../models/FileModel';
 import Notification from '../schemas/NotificationSchema';
+import Mail from '../../libs/Mail';
 
 class AppointmentController {
   async store(req, res) {
@@ -30,6 +31,12 @@ class AppointmentController {
           .json({ error: 'You can only create appointments with providers' });
       }
 
+      if (provider_id === req.userId) {
+        return res
+          .status(400)
+          .json({ error: 'Appointments only can created by other providers' });
+      }
+
       const hourStart = startOfHour(parseISO(date));
 
       if (isBefore(hourStart, new Date())) {
@@ -53,16 +60,14 @@ class AppointmentController {
       });
 
       const user = await User.findByPk(req.userId);
-      const dateFormated = format(
-        hourStart,
-        " 'dia' dd 'de'  MMMM', às' H:mm'h'",
-        { locale: pt }
-      );
+      const dateFormated = format(hourStart, "dd 'de' MMMM', às' H:mm'h'", {
+        locale: pt,
+      });
 
-      // Notify Provider
+      // Notify appointment Provider
 
       await Notification.create({
-        content: `Novo agendamento de ${user.name} para ${dateFormated}`,
+        content: `Novo agendamento de ${user.name} para o dia ${dateFormated}`,
         user: provider_id,
       });
 
@@ -99,6 +104,68 @@ class AppointmentController {
     } catch (error) {
       return res.status(200).json({ error });
     }
+  }
+
+  async delete(req, res) {
+    const appointment = await Appointment.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'provider',
+          attributes: ['name', 'email'],
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name'],
+        },
+      ],
+    });
+
+    if (appointment.user_id !== req.userId) {
+      return res
+        .status(401)
+        .json({ error: 'You do not permission to cancel this appointment' });
+    }
+
+    const lessDate = subHours(appointment.date, 2);
+
+    if (isBefore(lessDate, new Date())) {
+      return res
+        .status(401)
+        .json({ error: 'You can only cancel appointments 2 hours in advance' });
+    }
+
+    if (appointment.canceled_at) {
+      return res
+        .status(400)
+        .json({ error: 'Appointment has already been canceled ' });
+    }
+
+    appointment.canceled_at = new Date();
+
+    await appointment.save();
+
+    const dateCancelFormated = format(
+      appointment.date,
+      "dd 'de' MMMM', às' H:mm'h'",
+      {
+        locale: pt,
+      }
+    );
+
+    await Mail.sendMail({
+      to: `${appointment.provider.name} <${appointment.provider.email}>`,
+      subject: 'Appointment cancel',
+      template: 'cancellation',
+      context: {
+        provider: appointment.provider.name,
+        user: appointment.user.name,
+        date: dateCancelFormated,
+      },
+    });
+
+    return res.status(200).json(appointment);
   }
 }
 
