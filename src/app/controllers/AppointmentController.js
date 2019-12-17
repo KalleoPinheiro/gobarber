@@ -5,7 +5,8 @@ import Appointment from '../models/AppointmentsModel';
 import User from '../models/UserModel';
 import File from '../models/FileModel';
 import Notification from '../schemas/NotificationSchema';
-import Mail from '../../libs/Mail';
+import Queue from '../../libs/Queue';
+import CancellationMail from '../jobs/CancellationMail';
 
 class AppointmentController {
   async store(req, res) {
@@ -154,15 +155,9 @@ class AppointmentController {
       }
     );
 
-    await Mail.sendMail({
-      to: `${appointment.provider.name} <${appointment.provider.email}>`,
-      subject: 'Appointment cancel',
-      template: 'cancellation',
-      context: {
-        provider: appointment.provider.name,
-        user: appointment.user.name,
-        date: dateCancelFormated,
-      },
+    Queue.add(CancellationMail.key, {
+      appointment,
+      dateCancelFormated,
     });
 
     return res.status(200).json(appointment);

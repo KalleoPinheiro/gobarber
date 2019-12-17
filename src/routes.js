@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import AppointmentController from './app/controllers/AppointmentController';
+import AvailableController from './app/controllers/AvailableController';
 import FileController from './app/controllers/FileController';
 import NotificationController from './app/controllers/NotificationController';
 import ProviderController from './app/controllers/ProviderController';
@@ -25,7 +26,8 @@ routes.get('/users', UserController.list);
 routes.get('/providers', ProviderController.list);
 routes.get('/appointments', AppointmentController.list);
 routes.get('/schedule', ScheduleController.list);
-routes.get('/notifications', NotificationController.list);
+routes.get('/schedule/', ScheduleController.list);
+routes.get('/available/:providerId', AvailableController.find);
 
 // POST
 routes.post('/files', upload.single('file'), FileController.store);
