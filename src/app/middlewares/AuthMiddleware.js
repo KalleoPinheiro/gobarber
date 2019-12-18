@@ -1,7 +1,6 @@
 import { verify } from 'jsonwebtoken';
 import { promisify } from 'util';
-
-require('dotenv').config();
+import authConfig from '../../config/auth';
 
 export default async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -11,7 +10,7 @@ export default async (req, res, next) => {
 
   const [, token] = authHeader.split(' ');
   try {
-    const decoded = await promisify(verify)(token, process.env.SECRET_KEY);
+    const decoded = await promisify(verify)(token, authConfig.secret);
     req.userId = decoded.id;
     return next();
   } catch (error) {

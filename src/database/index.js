@@ -1,5 +1,5 @@
-import Sequelize from 'sequelize';
 import mongoose from 'mongoose';
+import Sequelize from 'sequelize';
 import Appointment from '../app/models/AppointmentsModel';
 import File from '../app/models/FileModel';
 import User from '../app/models/UserModel';
@@ -14,7 +14,7 @@ class Database {
   }
 
   init() {
-    this.connection = new Sequelize(databaseConfig.development);
+    this.connection = new Sequelize(databaseConfig);
     models
       .map(model => model.init(this.connection))
       .map(model => model.associate && model.associate(this.connection.models));
@@ -22,7 +22,7 @@ class Database {
 
   mongo() {
     this.mongoConnection = mongoose.connect(
-      `mongodb://localhost:27017/gobarber`,
+      `${process.env.MONGO_URL}${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_NAME}`,
       {
         useNewUrlParser: true,
         useFindAndModify: true,

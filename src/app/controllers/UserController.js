@@ -63,33 +63,25 @@ class UserController {
       return res.status(401).json({ error: 'Password does not match!' });
     }
 
-    try {
-      if (!user) {
-        res.status(400).json({ message: 'User not found' });
-      }
-      const { id, name, provider } = await user.update(req.body);
-      return res.json({ id, name, email, provider });
-    } catch (error) {
-      return res.status(400).json({ error });
+    if (!user) {
+      res.status(400).json({ message: 'User not found' });
     }
+    const { id, name, provider } = await user.update(req.body);
+    return res.json({ id, name, email, provider });
   }
 
   async list(_, res) {
-    try {
-      const user = await User.findAll({
-        attributes: ['id', 'name', 'email'],
-        include: [
-          {
-            model: File,
-            as: 'avatar',
-            attributes: ['id', 'name', 'url', 'path'],
-          },
-        ],
-      });
-      return res.status(200).json(user);
-    } catch (error) {
-      return res.status(400).json({ error });
-    }
+    const user = await User.findAll({
+      attributes: ['id', 'name', 'email'],
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'name', 'url', 'path'],
+        },
+      ],
+    });
+    return res.status(200).json(user);
   }
 }
 
